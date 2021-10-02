@@ -38,6 +38,11 @@ describe '10-word-count', ->
     expected = words: 1, lines: 1
     helper input, expected, done
 
+  it 'should count words and numbers in a phrase', (done) ->
+    input = 'this is a basic test 101'
+    expected = words: 6, lines: 1
+    helper input, expected, done
+
   # !!!!!
   # Make the above tests pass and add more tests!
   # !!!!!

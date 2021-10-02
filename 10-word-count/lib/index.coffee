@@ -12,36 +12,37 @@ module.exports = ->
         if line
           lines += 1
           if line.includes('"')
-            quotedPhrase = line.match(/"(.*?)"/)[1] # assuming there will be just one occurance of double quotes
-            wordsInLine = line.split(/["]/)
-            wordsInLine.forEach (phrase) ->
-              if phrase
-                if quotedPhrase == phrase
-                  words += 1
-                else
-                  phrase = phrase.trim()
-                  words += phrase.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').length
+            handelQuotes(line)
           else
-            wordsInLine = line.split(' ')
-            wordsInLine.forEach (phrase) -> 
-              words += phrase.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').length
+            handelCamelCase(line)
     else
       lines = 1
       if chunk.includes('"')
-        quotedPhrase = chunk.match(/"(.*?)"/)[1] # assuming there will be just one occurance of double quotes
-        wordsInLine = chunk.split(/["]/)
-        wordsInLine.forEach (phrase) ->
-          if phrase
-            if quotedPhrase == phrase
-              words += 1
-            else
-              phrase = phrase.trim()
-              words += phrase.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').length
+        handelQuotes(chunk)
       else
-        tokens = chunk.split(' ')
-        tokens.forEach (phrase) ->
-          words += phrase.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').length
+        handelCamelCase(chunk)
     return cb()
+
+  # this function will handle the word count for a normal/camel cased word
+  handelCamelCase = (chunk) ->
+    wordsInLine = chunk.split(' ')
+    wordsInLine.forEach (phrase) -> 
+      if phrase
+        words += phrase.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').length
+
+  # this function will make sure that characters inside quotes are considered as 1 word only
+  handelQuotes = (chunk) ->
+    regex = new RegExp('"(.*?)"','g')
+    allQuotedPhrases = Array.from chunk.matchAll(regex), (m) ->
+      m[1]
+    wordsInLine = chunk.split(/["]/)
+    wordsInLine.forEach (phrase) ->
+      if phrase
+        if allQuotedPhrases.includes(phrase)
+          words += 1
+        else
+          phrase = phrase.trim()
+          handelCamelCase(phrase)
 
   flush = (cb) ->
     this.push {words, lines}
